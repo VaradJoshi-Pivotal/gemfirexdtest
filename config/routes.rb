@@ -1,6 +1,8 @@
 Gemfirexdtest::Application.routes.draw do
 
-match 'snapshots' => 'application#openconn'
+  get "snapshot/show"
+
+match 'getsnapshotdata' => 'snapshot#getdata', :constraints => {:format => 'json'}
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

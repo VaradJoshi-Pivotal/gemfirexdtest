@@ -12,4 +12,15 @@
 //
 //= require jquery
 //= require jquery_ujs
-//= require_tree .
+//= require highcharts
+
+// Rails CSRF Protection
+$(document).ajaxSend(function (e, xhr, options) {
+  var token = $("meta[name='csrf-token']").attr("content");
+  xhr.setRequestHeader("X-CSRF-Token", token);
+});
+
+$(document).ready(function () {
+  // Router.route(document.location.pathname, document.location.search);
+});
+

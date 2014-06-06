@@ -1,0 +1,58 @@
+<h1>Defect Snapshot</h1>
+<p>Get the defect snapshot</p>
+<button id="getdatabtn" onclick="getsnapshotdata()">Get Data</button>
+
+<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+
+<script type="text/javascript" >
+	function getsnapshotdata() {
+		$.ajax({
+  				type: 'GET',
+  				url:  '/getsnapshotdata',
+  				data: {},
+  				dataType : "json",
+  				success: function (data) {
+   					if (data.error) {
+    					onsnapshoterror(data.error);
+   					} 
+   					else {
+    					onsnapshotsuccess(data);
+   					}
+				}
+			   });
+	}
+	
+	function onsnapshoterror(error) {
+	}
+
+	function onsnapshotsuccess(data) {
+        $('#container').highcharts({
+            chart: {
+                type: 'line'
+            },
+            title: {
+                text: 'Defect trend'
+            },
+            subtitle: {
+                text: 'Cedar defects'
+            },
+            xAxis: {
+                categories: data.timestamps
+            },
+            yAxis: {
+                title: {
+                    text: 'Open Defects'
+                }
+            },
+            plotOptions: {
+                line: {
+                    dataLabels: {
+                        enabled: true
+                    },
+                    enableMouseTracking: false
+                }
+            },
+            series: data.ownerdata
+        });
+	}
+</script>
