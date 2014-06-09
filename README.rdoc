@@ -4,13 +4,75 @@ This is a sample RoR application that connects to a Gemfire XD database and gets
 It uses jruby and derby-jdbc adapter.
 
 To use it do the following:
+
+Run GFXD
+The RoR application assumes that GFXD can be contacted at 'localhost:1527' so ensure that when you start GXFD server/locator.
+Load the following schema in your GFXD instance:
+========================
+CREATE TABLE SNAPSHOTS (
+	ID INT GENERATED ALWAYS AS IDENTITY CONSTRAINT ID_PK PRIMARY KEY,
+	STIMESTAMP TIMESTAMP NOT NULL
+);
+
+CREATE TABLE TICKETS (
+	SID INT,
+	TICKETID INT,
+	OWNER VARCHAR(50) NOT NULL,
+	STATUS VARCHAR(50) NOT NULL,
+	CONSTRAINT TICKETS_PK PRIMARY KEY (SID, TICKETID),
+	CONSTRAINT TICKETS_FK FOREIGN KEY (SID) REFERENCES SNAPSHOTS (ID)
+);
+
+CREATE TABLE OWNERDATA (
+	SID INT,
+	NAME VARCHAR(50) NOT NULL,
+	NUMOPEN INT,
+	NUMCLOSED INT,
+	NUMDEFERRED INT,
+	NUMREASSIGNEDFROM INT,
+	NUMNEW INT,
+	NUMREOPENED INT,
+	NUMREASSIGNEDTO INT,
+	CONSTRAINT OWNERDATA_PK PRIMARY KEY (SID, NAME),
+	CONSTRAINT OWNERDATA_FK FOREIGN KEY (SID) REFERENCES SNAPSHOTS (ID)
+);
+========================
+
+Sample data to load in GFXD:
+========================
+insert into SNAPSHOTS VALUES (DEFAULT, CURRENT_TIMESTAMP);
+
+insert into OWNERDATA VALUES (1, 'John', 7, 0, 0, 0, 0, 0, 0);
+insert into OWNERDATA VALUES (1, 'Jane', 15, 0, 0, 0, 0, 0, 0);
+insert into OWNERDATA VALUES (1, 'Jack', 27, 0, 0, 0, 0, 0, 0);
+insert into OWNERDATA VALUES (1, 'Jim', 12, 0, 0, 0, 0, 0, 0);
+
+insert into SNAPSHOTS VALUES (DEFAULT, CURRENT_TIMESTAMP);
+
+insert into OWNERDATA VALUES (2, 'John', 15, 2, 1, 0, 5, 5, 1);
+insert into OWNERDATA VALUES (2, 'Jane', 18, 0, 0, 0, 3, 0, 0);
+insert into OWNERDATA VALUES (2, 'Jack', 15, 8, 2, 2, 0, 0, 0);
+insert into OWNERDATA VALUES (2, 'Jim', 9, 4, 3, 0, 2, 1, 1);
+
+insert into SNAPSHOTS VALUES (DEFAULT, CURRENT_TIMESTAMP);
+
+insert into OWNERDATA VALUES (3, 'John', 12, 2, 1, 0, 0, 0, 0);
+insert into OWNERDATA VALUES (3, 'Jane', 8, 4, 8, 1, 1, 2, 0);
+insert into OWNERDATA VALUES (3, 'Jack', 15, 2, 2, 0, 3, 0, 1);
+insert into OWNERDATA VALUES (3, 'Jim', 3, 5, 5, 0, 2, 2, 0);
+========================
+
+
+Running Ruby on Rails server
 1. Get jruby. Here is the command to use with rvm:
 	curl -sSL https://get.rvm.io | bash -s stable --ruby=jruby
 2. Use jruby.
 	rvm jruby
 3. Set the Classpath to pick up the GFXD client driver:
 	export CLASSPATH="YOUR_GFXD_LOCATION/lib/gemfirexd-client.jar:$CLASSPATH"
-4. Start the rails server in this directory.
+4. Start the rails server wherever you checkout this repo.
 	jruby -S rails s
 5. Browse over to the url:
 	http://localhost:3000/snapshot/show
+
+
