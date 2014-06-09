@@ -7,7 +7,7 @@ class SnapshotController < ApplicationController
   end
 
   def getdata
-        debugger
+        #debugger
         #ActiveRecord::Base.establish_connection(
         #    :adapter => 'jdbc',
         #    :username => 'vjoshi',
@@ -23,13 +23,13 @@ class SnapshotController < ApplicationController
             userurl = "jdbc:gemfirexd://localhost:1527/"
             connSelect = java.sql.DriverManager.get_connection(userurl, "app", "app")
 
-            # Define the query
+            # Get the miniumn and maximum ids in the snapshot table
             stmtSelect = connSelect.create_statement
             selectquery = "select min(id), max(id) from snapshots"
             # Execute the query
             rsS = stmtSelect.execute_query(selectquery)
 
-            # For each row returned do some stuff
+            # iterate over the resultset. Min/max are returned as columns 1 and 2
             minid = 1
             maxid = 1
             while (rsS.next) do
@@ -38,30 +38,51 @@ class SnapshotController < ApplicationController
             end
             stmtSelect.close
 
-            # Define the query
+            # Get all the ids and timestamps from snapshot table
             stmtSelect = connSelect.create_statement
             selectquery = "select * from snapshots"
             # Execute the query
             rsS = stmtSelect.execute_query(selectquery)
 
             timestamps = Array.new( maxid-minid+1 )
-            # For each row returned do some stuff
+            # iterate over the resultset and get id and stimestamp columns
             while (rsS.next) do
                 id = rsS.getObject("id")
-                timestamps[id-minid] = rsS.getObject("stimestamp").to_s
+				# timestamp is of format 'yyyy-mm-dd hh:mm:ss.mmm'
+				# we are interested in only the 'yyyy-mm-dd hh:mm' part of it
+				# so truncate it to 16th character
+				ts = rsS.getObject("stimestamp").to_s
+                timestamps[id-minid] = ts[0,16]
             end
             stmtSelect.close
 
-            # Define the query
+            # Get the total number of open, incoming and outgoing defects for each snapshot
             stmtSelect = connSelect.create_statement
-            #selectquery = "select o.name, o.numopen, s.stimestamp from ownerdata as o, snapshots as s where o.sid = s.id"
+            selectquery = "select sid, sum(numopen), sum(numclosed+numdeferred), sum(numnew+numreopened) from ownerdata group by sid"
+            # Execute the query
+            rsS = stmtSelect.execute_query(selectquery)
+
+            numop = Array.new( maxid-minid+1 )
+            numin = Array.new( maxid-minid+1 )
+            numout = Array.new( maxid-minid+1 )
+            # Iterate over the resultset. numopen, numin and numout are columns 2, 3, and 4
+            while (rsS.next) do
+                id = rsS.getObject("sid")
+                numop[id-minid] = rsS.getObject("2")
+                numout[id-minid] = rsS.getObject("3")
+                numin[id-minid] = rsS.getObject("4")
+            end
+            stmtSelect.close
+
+            # Get the name, number of open defects and snapshot id from ownerdata
+            stmtSelect = connSelect.create_statement
             selectquery = "select name, numopen, sid from ownerdata"
             # Execute the query
             rsS = stmtSelect.execute_query(selectquery)
 
             ownerToIdx = Hash.new
 			ownerdata = Array.new
-            # For each row returned do some stuff
+            # Iterate over resultset and gather data by owner and by snapshot
             while (rsS.next) do
                 name = rsS.getObject("name")
                 numopen = rsS.getObject("numopen")
@@ -84,6 +105,6 @@ class SnapshotController < ApplicationController
         end
         # Close off the connection
         connSelect.close
-        render json: {timestamps: timestamps, ownerdata: ownerdata}
+        render json: {timestamps: timestamps, ownerdata: ownerdata, numopen: numop, numin: numin, numout: numout}
   end
 end

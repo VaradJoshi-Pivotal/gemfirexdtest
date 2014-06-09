@@ -2,7 +2,8 @@
 <p>Get the defect snapshot</p>
 <button id="getdatabtn" onclick="getsnapshotdata()">Get Data</button>
 
-<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+<div id="oscontainer" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+<div id="odcontainer" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
 
 <script type="text/javascript" >
 	function getsnapshotdata() {
@@ -26,15 +27,50 @@
 	}
 
 	function onsnapshotsuccess(data) {
-        $('#container').highcharts({
+        $('#oscontainer').highcharts({
             chart: {
-                type: 'line'
-            },
+                type: 'line',
+                zoomType: 'xy'
+             },
             title: {
-                text: 'Defect trend'
+                text: 'Total/Incoming/Outgoing Defects'
             },
             subtitle: {
-                text: 'Cedar defects'
+				text: document.ontouchstart === undefined ?
+                    'Click and drag in the plot area to zoom in' :
+                    'Pinch the chart to zoom in'
+            },
+            xAxis: {
+                categories: data.timestamps
+            },
+            yAxis: {
+                title: {
+                    text: 'Number of Defects'
+                }
+            },
+            plotOptions: {
+                line: {
+                    dataLabels: {
+                        enabled: true
+                    },
+                    enableMouseTracking: true
+                }
+            },
+            series: [{name: "Open", data: data.numopen}, {name: "Incoming", data: data.numin}, {name: "Outgoing", data: data.numout}]
+        });
+
+        $('#odcontainer').highcharts({
+            chart: {
+                type: 'line',
+                zoomType: 'xy'
+            },
+            title: {
+                text: 'Defect trend by owner'
+            },
+            subtitle: {
+				text: document.ontouchstart === undefined ?
+                    'Click and drag in the plot area to zoom in' :
+                    'Pinch the chart to zoom in'
             },
             xAxis: {
                 categories: data.timestamps
@@ -49,7 +85,7 @@
                     dataLabels: {
                         enabled: true
                     },
-                    enableMouseTracking: false
+                    enableMouseTracking: true
                 }
             },
             series: data.ownerdata
