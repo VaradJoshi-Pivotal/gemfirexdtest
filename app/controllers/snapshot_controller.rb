@@ -57,21 +57,26 @@ class SnapshotController < ApplicationController
             stmtSelect.close
 
             # Get the total number of open, incoming and outgoing defects for each snapshot
+            # get the total number of reassigned defects
             stmtSelect = connSelect.create_statement
-            selectquery = "select sid, sum(numopen), sum(numclosed+numdeferred), sum(numnew+numreopened) from ownerdata group by sid"
+            selectquery = "select sid, sum(numopen), sum(numclosed+numdeferred), sum(numnew+numreopened), sum(numreassignedfrom) from ownerdata group by sid"
             # Execute the query
             rsS = stmtSelect.execute_query(selectquery)
 
             numop = Array.new( maxid-minid+1 )
             numin = Array.new( maxid-minid+1 )
             numout = Array.new( maxid-minid+1 )
+            numchurn = Array.new( maxid-minid+1 )
             # Iterate over the resultset. numopen, numin and numout are columns 2, 3, and 4
             while (rsS.next) do
                 id = rsS.getObject("sid")
                 numop[id-minid] = rsS.getObject("2")
                 numout[id-minid] = rsS.getObject("3")
                 numin[id-minid] = rsS.getObject("4")
+		        numchurn[id-minid] = rsS.getObject("5")
             end
+            # numin[0] is going to be same as numop[0]. This messes up our display so hide it
+            numin[0] = 0
             stmtSelect.close
 
             # Get the name, number of open defects and snapshot id from ownerdata
@@ -105,6 +110,6 @@ class SnapshotController < ApplicationController
         end
         # Close off the connection
         connSelect.close
-        render json: {timestamps: timestamps, ownerdata: ownerdata, numopen: numop, numin: numin, numout: numout}
+        render json: {timestamps: timestamps, ownerdata: ownerdata, numopen: numop, numin: numin, numout: numout, numchurn: numchurn}
   end
 end

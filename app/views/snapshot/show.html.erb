@@ -2,8 +2,10 @@
 <p>Get the defect snapshot</p>
 <button id="getdatabtn" onclick="getsnapshotdata()">Get Data</button>
 
-<div id="oscontainer" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
-<div id="odcontainer" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+<div id="total_open_container" style="min-width: 310px; height: 300px; margin: 0 auto"></div>
+<div id="in_out_container" style="min-width: 310px; height: 300px; margin: 0 auto"></div>
+<div id="churn_container" style="min-width: 310px; height: 300px; margin: 0 auto"></div>
+<div id="owner_container" style="min-width: 310px; height: 500px; margin: 0 auto"></div>
 
 <script type="text/javascript" >
 	function getsnapshotdata() {
@@ -27,13 +29,13 @@
 	}
 
 	function onsnapshotsuccess(data) {
-        $('#oscontainer').highcharts({
+        $('#total_open_container').highcharts({
             chart: {
                 type: 'line',
                 zoomType: 'xy'
              },
             title: {
-                text: 'Total/Incoming/Outgoing Defects'
+                text: 'Total Open Defects'
             },
             subtitle: {
 				text: document.ontouchstart === undefined ?
@@ -56,10 +58,74 @@
                     enableMouseTracking: true
                 }
             },
-            series: [{name: "Open", data: data.numopen}, {name: "Incoming", data: data.numin}, {name: "Outgoing", data: data.numout}]
+            series: [{name: "Open", data: data.numopen}]
         });
 
-        $('#odcontainer').highcharts({
+        $('#in_out_container').highcharts({
+            chart: {
+                type: 'line',
+                zoomType: 'xy'
+             },
+            title: {
+                text: 'Incoming/Outgoing Defects'
+            },
+            subtitle: {
+				text: document.ontouchstart === undefined ?
+                    'Click and drag in the plot area to zoom in' :
+                    'Pinch the chart to zoom in'
+            },
+            xAxis: {
+                categories: data.timestamps
+            },
+            yAxis: {
+                title: {
+                    text: 'Number of Defects'
+                }
+            },
+            plotOptions: {
+                line: {
+                    dataLabels: {
+                        enabled: true
+                    },
+                    enableMouseTracking: true
+                }
+            },
+            series: [{name: "Incoming", data: data.numin}, {name: "Outgoing", data: data.numout}]
+        });
+
+        $('#churn_container').highcharts({
+            chart: {
+                type: 'line',
+                zoomType: 'xy'
+             },
+            title: {
+                text: 'Churn (Reassigned Defects)'
+            },
+            subtitle: {
+				text: document.ontouchstart === undefined ?
+                    'Click and drag in the plot area to zoom in' :
+                    'Pinch the chart to zoom in'
+            },
+            xAxis: {
+                categories: data.timestamps
+            },
+            yAxis: {
+                title: {
+                    text: 'Number of Defects'
+                }
+            },
+            plotOptions: {
+                line: {
+                    dataLabels: {
+                        enabled: true
+                    },
+                    enableMouseTracking: true
+                }
+            },
+            series: [{name: "Reassigned", data: data.numchurn}]
+        });
+
+        $('#owner_container').highcharts({
             chart: {
                 type: 'line',
                 zoomType: 'xy'
