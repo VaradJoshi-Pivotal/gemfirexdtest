@@ -56,10 +56,12 @@ class SnapshotController < ApplicationController
             end
             stmtSelect.close
 
+			qid = params[:qid]
+
             # Get the total number of open, incoming and outgoing defects for each snapshot
             # get the total number of reassigned defects
             stmtSelect = connSelect.create_statement
-            selectquery = "select sid, sum(numopen), sum(numclosed+numdeferred), sum(numnew+numreopened), sum(numreassignedfrom) from ownerdata group by sid"
+            selectquery = "select sid, sum(numopen), sum(numclosed+numdeferred), sum(numnew+numreopened), sum(numreassignedfrom) from ownerdata where qid = " + qid.to_s + " group by sid"
             # Execute the query
             rsS = stmtSelect.execute_query(selectquery)
 
@@ -81,7 +83,7 @@ class SnapshotController < ApplicationController
 
             # Get the name, number of open defects and snapshot id from ownerdata
             stmtSelect = connSelect.create_statement
-            selectquery = "select name, numopen, sid from ownerdata"
+            selectquery = "select name, numopen, sid from ownerdata where qid = " + qid.to_s
             # Execute the query
             rsS = stmtSelect.execute_query(selectquery)
 
